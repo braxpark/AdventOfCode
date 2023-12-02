@@ -1,7 +1,7 @@
-# AdventOfCode 2023
-### Solutions in the following languages: <br/>
+# AdventOfCode 
+### Solutions in the following languages with associated years: <br/>
 <ul>
   <li>
-    Zig
+    Zig {2023}
   </li>
 </ul>
