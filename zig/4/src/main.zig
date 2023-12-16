@@ -1,6 +1,6 @@
 const std = @import("std");
 const print = std.debug.print;
-const input = @embedFile("test.txt");
+const input = @embedFile("input.txt");
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
@@ -11,6 +11,7 @@ pub fn main() !void {
 pub fn part_one_and_two(allocator: std.mem.Allocator) !void {
     var part1Sum: u64 = 0;
     var part2Sum: u64 = 0;
+    _ = part2Sum;
 
     var doubledVals = std.ArrayList(u64).init(allocator);
     var currVal: u64 = 1;
@@ -20,23 +21,23 @@ pub fn part_one_and_two(allocator: std.mem.Allocator) !void {
         currVal *= 2;
         try doubledVals.insert(doubledVals.items.len, currVal);
     }
-    const numLines = 6;
+    const numLines = 198;
     var lines = std.mem.split(u8, input, "\r\n");
     var lineNum: u16 = 0;
 
     var p2Carries = std.ArrayList(u16).init(allocator);
-    try p2Carries.appendNTimes(0, numLines + 1);
+    try p2Carries.appendNTimes(1, numLines);
 
+    var cardWinners = std.ArrayList(u16).init(allocator);
+    try cardWinners.appendNTimes(0, numLines);
     while (lines.next()) |line| {
         lineNum += 1;
         var desc = std.mem.split(u8, line, ":");
-        var card = desc.first();
-        _ = card;
+        _ = desc.first();
         var nums = desc.next().?;
         var nums_split = std.mem.split(u8, nums, "|");
         var winners = nums_split.first();
         var ours = nums_split.next().?;
-        //print("{s} | {s}\n", .{ winners, ours });
         var hashMap = std.AutoHashMap(u16, void).init(allocator);
         var winner_splits = std.mem.split(u8, winners, " ");
         while (winner_splits.next()) |winner| {
@@ -56,16 +57,23 @@ pub fn part_one_and_two(allocator: std.mem.Allocator) !void {
         if (numWinners > 0) {
             part1Sum += (doubledVals.items[numWinners - 1]);
         }
-        part2Sum += 1;
-        part2Sum += p2Carries.items[lineNum - 1];
-        print("print2Sum: {d}\n", .{part2Sum});
-        for (0..numWinners) |offset| {
-            p2Carries.items[lineNum - 1 + offset + 1] += 1;
+        cardWinners.items[lineNum - 1] = numWinners;
+    }
+
+    var resultCards = std.ArrayList(u64).init(allocator);
+    try resultCards.appendNTimes(1, numLines);
+    var finalPart2Sum: u64 = 0;
+    for (resultCards.items[0..numLines], 0..) |card, i| {
+        finalPart2Sum += card;
+        for (0..cardWinners.items[i], 0..) |_, j| {
+            var pos = i + 1 + j;
+            if (pos == numLines) {
+                continue;
+            } else if (pos < numLines) {
+                resultCards.items[pos] += card;
+            }
         }
     }
     print("Answer for Day 4 part 1 is: {d}\n", .{part1Sum});
-    print("Answer for Day 4 part 2 is: {d}\n", .{part2Sum});
-    for (p2Carries.items[1..], 1..) |item, idx| {
-        print("{d}: {d}\n", .{ idx + 1, item });
-    }
+    print("Answer for Day 4 part 2 is: {d}\n", .{finalPart2Sum});
 }
